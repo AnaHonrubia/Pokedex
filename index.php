@@ -3,85 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <title>Mi Pokédex</title>
-    <style>
-        /* CSS básico */
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        .resultado { background: #f4f4f4; padding: 20px; border-radius: 8px; margin-top: 20px;}
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <h1>Pokédex: Calculadora de Tipos</h1>
-
-    <form method="GET" action="">
-        <label for="tipo">Elige un tipo de Pokémon:</label>
-        <select name="tipo" id="tipo">
-            <option value="ground">Tierra</option>
-            <option value="water">Agua</option>
-            <option value="fire">Fuego</option>
-            <option value="grass">Planta</option>
-            <option value="electric">Eléctrico</option>
-        </select>
-        <button type="submit">Analizar Tipo</button>
-    </form>
+    <h1>Pokédex Nacional</h1>
 
     <?php
-    // Comprobamos si la URL tiene el parámetro "tipo" 
-    $tipoSeleccionado = $_GET['tipo'] ?? '';
+    // Comprobamos si el usuario ha pinchado en un Pokémon concreto
+    $pokemonSeleccionado = $_GET['pokemon'] ?? '';
 
-    // Si el usuario ha seleccionado un tipo, ejecutamos el código
-    if ($tipoSeleccionado != '') {
+    // ==========================================
+    // VISTA 1: PORTADA (LISTA DE POKÉMON)
+    // ==========================================
+    if ($pokemonSeleccionado == '') {
         
-        // Preparamos la URL de la API sumándole el tipo que eligió el usuario
-        $url = "https://pokeapi.co/api/v2/type/" . $tipoSeleccionado;
+        // Pedimos los primeros 200 Pokémon a la API
+        $urlLista = "https://pokeapi.co/api/v2/pokemon?limit=200";
+        $datosLista = json_decode(@file_get_contents($urlLista), true);
 
-        // función de PHP que va a esa URL y se trae todo el texto
-        $respuestaJSON = @file_get_contents($url);
-
-        // Si la respuesta es válida 
-        if ($respuestaJSON) {
+        if ($datosLista) {
+            // NUEVO: Sacamos el número total de registros directamente de esta respuesta
+            $totalPokemon = $datosLista['count'];
+            echo "<p>Actualmente hay <strong>{$totalPokemon}</strong> registros en la base de datos (incluyendo formas alternativas).</p>";
+            echo "<p>Selecciona un Pokémon para ver su información de combate (Primeros 200 Pokemon).</p>";
             
-            // La API nos devuelve un texto en formato JSON. 
-            // se convierte en un Array de PHP para que podamos leerlo.
-            $datos = json_decode($respuestaJSON, true);
+            echo "<div class='pokedex-grid'>";
+
+            // Recorremos los 50 Pokémon para crear la cuadrícula
+            foreach ($datosLista['results'] as $poke) {
+                $nombre = ucfirst($poke['name']);
+                
+                // Truco para conseguir la foto rápido sin hacer más peticiones a la API
+                $partes = explode('/', rtrim($poke['url'], '/'));
+                $id = end($partes);
+                $imagen = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{$id}.png";
+
+                echo "<a href='?pokemon={$poke['name']}' class='pokemon-card'>";
+                echo "<img src='{$imagen}' alt='{$nombre}'>";
+                echo "<h3>#{$id} {$nombre}</h3>";
+                echo "</a>";
+            }
+        } else {
+            echo "<p>Error al cargar la Pokédex.</p>";
+        }
+        echo "</div>";
+    } 
+    // ==========================================
+    // VISTA 2: FICHA DEL POKÉMON
+    // ==========================================
+    else {
+        // Pedimos todos los datos del Pokémon que hemos pinchado
+        $urlPokemon = "https://pokeapi.co/api/v2/pokemon/" . $pokemonSeleccionado;
+        $datosPoke = json_decode(@file_get_contents($urlPokemon), true);
+
+        if ($datosPoke) {
+            $nombre = ucfirst($datosPoke['name']);
+            // Buscamos la imagen oficial, si no existe, ponemos la básica
+            $imagen = $datosPoke['sprites']['other']['official-artwork']['front_default'] ?? $datosPoke['sprites']['front_default'];
+
+            echo "<div class='ficha'>";
+            echo "<a href='index.php' class='volver'>&larr; Volver a la Pokédex</a>";
+            echo "<img src='{$imagen}' alt='{$nombre}'>";
+            echo "<h2>{$nombre}</h2>";
+
+            // Mostramos los TIPOS del Pokémon
+            echo "<div class='tipos'>";
+            foreach ($datosPoke['types'] as $tipoData) {
+                echo "<span class='tipo-badge'>" . $tipoData['type']['name'] . "</span>";
+            }
+            echo "</div>";
+
+            echo "<div class='estadisticas'>";
             
-            $relaciones = $datos['damage_relations'];
+            // Analizamos ventajas y debilidades de su PRIMER tipo
+            $urlTipo = $datosPoke['types'][0]['type']['url'];
+            $datosTipo = json_decode(@file_get_contents($urlTipo), true);
+            $relaciones = $datosTipo['damage_relations'];
 
-            // Imprimimos el HTML con los resultados
-            echo "<div class='resultado'>";
-            echo "<h2>Resultados para el tipo: " . ucfirst($tipoSeleccionado) . "</h2>";
-
-            // -- FUERTE CONTRA --
-            echo "<h3> Hace doble daño a (Fuerte contra):</h3>";
+            // FUERTE CONTRA
+            echo "<div class='columna'>";
+            echo "<h3 class='fuerte'>💪 Fuerte contra:</h3>";
             echo "<ul>";
-            // Si la lista está vacía
             if (empty($relaciones['double_damage_to'])) {
-                echo "<li>A ninguno en especial</li>";
+                echo "<li>Ninguno</li>";
             } else {
-                // Si hay datos, los recorremos uno por uno con un bucle 
-                foreach($relaciones['double_damage_to'] as $tipoDañado) {
-                    echo "<li>" . ucfirst($tipoDañado['name']) . "</li>";
+                foreach ($relaciones['double_damage_to'] as $tipoFuerte) {
+                    echo "<li>" . ucfirst($tipoFuerte['name']) . "</li>";
                 }
             }
             echo "</ul>";
+            echo "</div>";
 
-            // -- DÉBIL CONTRA --
-            echo "<h3>Recibe doble daño de (Débil contra):</h3>";
+            // DÉBIL CONTRA
+            echo "<div class='columna'>";
+            echo "<h3 class='debil'>💔 Débil contra:</h3>";
             echo "<ul>";
             if (empty($relaciones['double_damage_from'])) {
-                echo "<li>De ninguno en especial</li>";
+                echo "<li>Ninguno</li>";
             } else {
-                foreach($relaciones['double_damage_from'] as $tipoAtacante) {
-                    echo "<li>" . ucfirst($tipoAtacante['name']) . "</li>";
+                foreach ($relaciones['double_damage_from'] as $tipoDebil) {
+                    echo "<li>" . ucfirst($tipoDebil['name']) . "</li>";
                 }
             }
             echo "</ul>";
+            echo "</div>";
 
-            echo "</div>"; // Cerramos el div de resultado
-
+            echo "</div>"; // Cierra estadísticas
+            echo "</div>"; // Cierra ficha
         } else {
-            // Si la API falla
-            echo "<p style='color:red;'>Error al conectar con la PokéAPI.</p>";
+            echo "<p>Error: Pokémon no encontrado.</p>";
+            echo "<a href='index.php'>Volver</a>";
         }
     }
     ?>
