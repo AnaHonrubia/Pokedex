@@ -23,14 +23,14 @@
         $datosLista = json_decode(@file_get_contents($urlLista), true);
 
         if ($datosLista) {
-            // NUEVO: Sacamos el número total de registros directamente de esta respuesta
+            // Sacamos el número total de registros directamente de esta respuesta
             $totalPokemon = $datosLista['count'];
             echo "<p>Actualmente hay <strong>{$totalPokemon}</strong> registros en la base de datos (incluyendo formas alternativas).</p>";
             echo "<p>Selecciona un Pokémon para ver su información de combate (Primeros 200 Pokemon).</p>";
             
             echo "<div class='pokedex-grid'>";
 
-            // Recorremos los 50 Pokémon para crear la cuadrícula
+            // Recorremos los 200 Pokémon para crear la cuadrícula
             foreach ($datosLista['results'] as $poke) {
                 $nombre = ucfirst($poke['name']);
                 
