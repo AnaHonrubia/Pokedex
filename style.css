@@ -1,0 +1,114 @@
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: #f0f0f0; 
+    margin: 0; 
+    padding: 20px; 
+    text-align: center; 
+}
+
+h1 { 
+    color: #cc0000; 
+}
+
+/* Estilos para la cuadrícula de la portada */
+.pokedex-grid { 
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    gap: 15px; 
+    max-width: 1000px; 
+    margin: 0 auto; 
+}
+
+.pokemon-card { 
+    background: white; 
+    border-radius: 10px; 
+    padding: 15px; 
+    width: 150px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    text-decoration: none; 
+    color: black; 
+    transition: transform 0.2s; 
+    border: 2px solid #ddd; 
+}
+
+.pokemon-card:hover { 
+    transform: scale(1.05); 
+    border-color: #cc0000; 
+}
+
+.pokemon-card img { 
+    width: 100px; 
+    height: 100px; 
+}
+
+/* Estilos para la ficha del Pokémon */
+.ficha { 
+    background: white; 
+    max-width: 600px; 
+    margin: 0 auto; 
+    padding: 30px; 
+    border-radius: 15px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+    text-align: left;
+}
+
+.ficha img { 
+    display: block; 
+    margin: 0 auto; 
+    width: 150px; 
+    height: 150px; 
+    background: #f9f9f9; 
+    border-radius: 50%; 
+    border: 3px solid #cc0000; 
+}
+
+.ficha h2 { 
+    text-align: center; 
+    text-transform: uppercase; 
+    letter-spacing: 2px; 
+}
+
+.tipos { 
+    text-align: center; 
+    margin-bottom: 20px; 
+}
+
+.tipo-badge { 
+    background: #333; 
+    color: white; 
+    padding: 5px 15px; 
+    border-radius: 20px; 
+    text-transform: uppercase; 
+    font-size: 14px; 
+    margin: 0 5px; 
+}
+
+.volver { 
+    display: inline-block; 
+    margin-bottom: 20px; 
+    color: #cc0000; 
+    text-decoration: none; 
+    font-weight: bold; 
+}
+
+.estadisticas { 
+    display: flex; 
+    justify-content: space-between; 
+    gap: 20px; 
+}
+
+.columna { 
+    flex: 1; 
+    background: #f9f9f9; 
+    padding: 15px; 
+    border-radius: 10px; 
+}
+
+.columna ul { 
+    padding-left: 20px; 
+    margin: 0; 
+}
+
+.fuerte { color: green; }
+.debil { color: red; }
